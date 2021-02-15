@@ -14,34 +14,36 @@ typedef struct dir {
 } Dir;
 
 struct stack;
-typedef struct stack* Pos;
+typedef struct stack* Node;
 typedef struct stack {
 	Position p;
-	Pos next;
+	Node next;
 } Stack;
 
-Position cddir(Position p, Pos q);
-Position cd(Position p, Pos q);
+Position createDir(char* name);
+Node createNode(Position p);
+int insertDir(Position p, char* name);
 int md(Position p);
-Position pop(Pos q);
-int push(Position p, Pos q);
-int printList(Position p);
+int push(Node q, Position p);
+int print(Position p);
+Position pop(Node q);
+Position cddir(Position p, Node q);
+Position cd(Position p, Node q);
+Position deleteDir(Position p, Node q);
 Position freeDir(Position p);
-Position deleteDir(Position p, Pos q);
 
 int main()
 {
 	Dir head;
-	Position temp;
-	Stack stack;
+	Position temp = NULL;
+	Stack s;
 	int a;
 
 	head.next = NULL;
 	head.child = NULL;
 
-	stack.next = NULL;
-	stack.p = NULL;
-
+	s.p = NULL;
+	s.next = NULL;
 	strcpy(head.name, "C:");
 
 	temp = &head;
@@ -54,141 +56,152 @@ int main()
 			md(temp);
 			break;
 		case 2:
-			temp = cddir(temp, &stack);
+			temp = cddir(temp, &s);
 			break;
 		case 3:
-			temp = cd(temp, &stack);
+			temp = cd(temp, &s);
 			break;
 		case 4:
 			printf("/%s/", temp->name);
-			printList(temp);
+			print(temp);
 			break;
 		default:
 			break;
 		}
 	}while(a != 5);
 
-	temp = deleteDir(temp, &stack);
+	temp = deleteDir(temp, &s);
+
+	return 0;
+}
+
+Position createDir(char* name) {
+	Position q = NULL;
+
+	q = (Position)malloc(sizeof(Dir));
+
+	if (q == NULL) {
+		perror("Error allocating memory!\n");
+		return NULL;
+	}
+
+	strcpy(q->name, name);
+	q->next = NULL;
+	q->child = NULL;
+
+	return q;
+}
+
+int insertDir(Position p, char* name) {
+	Position q = NULL;
+
+	q = createDir(name);
+
+	if (q != NULL) {
+		q->next = p->child;
+		p->child = q;
+	}
 
 	return 0;
 }
 
 int md(Position p) {
-	Position q = NULL;
-	char name[DIR_NAME_LENGTH];
+	char name[DIR_NAME_LENGTH] = {0};
 
-	puts("Enter name of directory: ");
+	printf("Insert name of directory: ");
 	scanf("%s", name);
 
-	q = (Position)malloc(sizeof(Dir));
-	
-	if (!q)
-		perror("Error!");
-	
-	strcpy(q->name, name);
-		
-	q->next = p->child;
-	p->child = q;
-	q->child = NULL;
+	insertDir(p, name);
 
 	return 0;
 }
 
-Position cddir(Position p, Pos q) {
-	char name[DIR_NAME_LENGTH];
+Node createNode(Position p) {
+	Node q = NULL;
+
+	q = (Node)malloc(sizeof(Stack));
+
+	if (q == NULL) {
+		perror("Error allocating memory!\n");
+		return NULL;
+	}
+
+	q->p = p;
+	q->next = NULL;
+
+	return q;
+}
+
+
+int push(Node q, Position p) {
+	Node r = NULL;
+
+	r = createNode(p);
+	
+	if (r != NULL) {
+		r->next = q->next;
+		q->next = r;
+	}
+
+	return 0;
+}
+
+Position pop(Node q) {
+	Node temp = NULL;
+	Position el = NULL;
+
+	if (q->next != NULL) {
+		temp = q->next;
+		q->next = temp->next;
+		el = temp->p;
+		free(temp);
+	}
+
+	return el;
+}
+
+Position cddir(Position p, Node q) {
+	char name[DIR_NAME_LENGTH] = {0};
 	Position temp = NULL;
-	int br = 0, i = 0;
 
 	temp = p->child;
-	
-	if ( temp == NULL ) {
-		puts("Directory is empty!");
+
+	if (temp == NULL) {
+		printf("Directory doesn't exist!\n");
 		return p;
 	}
 
-	puts("Enter name of directory: ");
+	printf("Insert name of directory: ");
 	scanf("%s", name);
 
-	while(temp != NULL && strcmp(temp->name, name) != 0) {
+	while(temp != NULL && strcmp(temp->name, name) != 0)
 		temp = temp->next;
-	}
 
-	if ( temp == NULL ) {
-		puts("Directory does not exist!");
+	if (temp == NULL) {
+		printf("Directory doesn't exist!\n");
 		return p;
 	}
 
-	push(p, q);
+	push(q, p);
 
 	return temp;
 }
 
-Position cd(Position p, Pos q) {
+Position cd(Position p, Node q) {
 	Position r = NULL;
 
 	r = pop(q);
 
-	if ( r == NULL ) 
+	if (r == NULL)
 		return p;
 
 	return r;
 }
 
-int push(Position p, Pos q) {
-	Pos r = NULL;
-
-	r = (Pos)malloc(sizeof(Stack));
-
-	r->p = p;
-
-	r->next = q->next;
-	q->next = r;
-
-	return 0;
-}
-
-Position pop(Pos q) {
-	Position r = NULL;
-	Pos s = NULL;
-
-	if (q->next != NULL) {
-		r = q->next->p;
-		s = q->next;
-		q->next = s->next;
-		free(s);
-	}
-
-	return r;
-}
-
-Position freeDir(Position p) {
-
-	if (p == NULL)
-		return NULL;
-	
-	p->child = freeDir(p->child);
-	p->next = freeDir(p->next); 
-	
-	free(p);
-
-	return NULL;
-}
-
-Position deleteDir(Position p, Pos q) {
-	Position temp = p;
-
-	while(q->next != NULL)
-		temp = pop(q);
-
-	temp = freeDir(temp->child);
-
-	return temp;
-}
-
-int printList(Position p) {
+int print(Position p) {
 	if (p == NULL)
 		puts("\nEmpty list!");
-
+	
 	p = p->child;
 	
 	while(p != NULL) {
@@ -197,4 +210,25 @@ int printList(Position p) {
 	}
 
 	return 0;
+}
+
+Position freeDir(Position p) {
+	if (p != NULL) {
+		p->child = freeDir(p->child);
+		p->next = freeDir(p->next);
+		free(p);
+	}
+
+	return NULL;
+}
+
+Position deleteDir(Position p, Node q) {
+	Position temp = p;
+
+	while(q->next != NULL)
+		temp = pop(q);
+	
+	temp = freeDir(temp->child);
+	
+	return temp;
 }

@@ -3,267 +3,295 @@
 #include<stdlib.h>
 #include<string.h>
 
-#define MAX_NAME 100
+#define NAME_SIZE 256
+#define FILE_SIZE 256
+
+typedef struct person {
+	char firstName[NAME_SIZE];
+	char lastName[NAME_SIZE];
+	int yearOfBirth;
+} Person;
 
 struct node;
 typedef struct node* Position;
-
-typedef struct stud {
-	char firstName[MAX_NAME];
-	char lastName[MAX_NAME];
-	int birthYear;   //unsigned 
-}Student;
-
 typedef struct node {
-	Student student;
+	Person per;
 	Position next;
-}Node;
+} Node;
 
-Student createStudent(void);
-Position createNode(Student student);
-void insertAfter(Position p, Position q);
-void printList(Position p);
-void insertEnd(Position p, Position q);
-Position findElement(Position p, char* lastName);
-void insertAfterEl(Position p, Position q, char* lastName);
-void insertBeforeEl(Position p, Position q, char* lastName);
-void printToFile(Position p, char* lastName);
-void readFromFile(Position p, char* lastName);
-void sort(Position p);
+Position createNode(Person per);
+Person createPerson();
+int insertAfter(Position p, Position q);
+int insertAtEnd(Position p, Position q);
+int deleteNode(Position p, char* lastName);
+int deleteAll(Position p);
+int insertAfterNode(Position p, Position q, char* lastName);
+int insertBeforeNode(Position p, Position q, char* lastName);
+int print(Position p);
+int printToFile(Position p, char* fileName);
+int readFromFile(Position p, char* fileName);
+int sortUnos(Position p, Position q);
+Position find(Position p, char* lastName);
+Position findB(Position p, char* lastName);
+int sort(Position p);
 
 int main()
 {
 	Node head;
-	Student student;
-	Position el = NULL;
-	char lastName[MAX_NAME];
-	int i;
+	Person per;
+	Position pos;
+	char lastName[NAME_SIZE];
+	int i = 0;
 
 	head.next = NULL;
-	
-	for(i=0; i<3; i++) {
-		student = createStudent();
-		el = (Position)malloc(sizeof(Node));
-		el = createNode(student);
 
-		insertAfter(&head, el);
+	/*for(i = 0; i < 3; i++) {
+		per = createPerson();
+		pos = (Position)malloc(sizeof(Node));
+		pos = createNode(per);
+		sortUnos(&head, pos);
 	}
 
-	printList(&head);
+	print(head.next);
 
-	//Insert at the end
-	printf("At the end, ");
+	printf("Insert last name: ");
+	scanf("%s", lastName); 
+	per = createPerson();
+	pos = (Position)malloc(sizeof(Node));
+	pos = createNode(per);
+	insertAfterNode(&head, pos, lastName);
 
-	student = createStudent();
-	el = (Position)malloc(sizeof(Node));
-	el = createNode(student);
+	printf("Insert last name: ");
+	scanf("%s", lastName); 
+	per = createPerson();
+	pos = (Position)malloc(sizeof(Node));
+	pos = createNode(per);
+	insertBeforeNode(&head, pos, lastName);
 
-	insertEnd(&head, el);
+	print(head.next);
 
-	//Find element
-	puts("Find element:");
-	scanf("%s", lastName);
+	//deleteAll(&head);
 
-	printf("Address: %d\n", findElement(&head, lastName));
-
-	//Insert after
-	printf("\nInsert after: ");
-	scanf("%s", lastName);
-
-	student = createStudent();
-	el = (Position)malloc(sizeof(Node));
-	el = createNode(student);
-
-	insertAfterEl(&head, el, lastName);
-
-
-	//Insert before
-	printf("\nInsert before: ");
-	scanf("%s", lastName);
-
-	student = createStudent();
-	el = (Position)malloc(sizeof(Node));
-	el = createNode(student);
-
-	insertBeforeEl(&head, el, lastName);
-
-	printList(&head);
-
-	puts("Sorted list:");
-
+	//print(head.next);*/
+	
 	sort(&head);
-
-	printList(&head);
-
-	//Print and read from file
+	
 	printf("Insert name of file: ");
 	scanf("%s", lastName);
-
-	//strcpy(lastName, ".txt");
 	
-	printToFile(&head, lastName);
+	//printToFile(head.next, lastName);
 	
 	readFromFile(&head, lastName);
-
-	printList(&head);
+	print(head.next);
 
 	return 0;
 }
 
-Student createStudent(void) {
-	Student student;
+Position createNode(Person per) {
+	Position q = NULL;
 
-	puts("Enter student:");
+	q = (Position)malloc(sizeof(Node));
 
-	printf("Frist name: ");
-	scanf("%s", student.firstName);
-	
-	printf("Last name: ");
-	scanf("%s", student.lastName);
-	
-	printf("Year of brith: ");
-	scanf("%d", &student.birthYear);
-
-	return student;
-}
-
-Position createNode(Student student) {
-	Position p = NULL;
-
-	p = (Position)malloc(sizeof(Node));
-
-	if ( p == NULL ) {
-		perror("Error!");
+	if (q == NULL) {
+		perror("Error!\n");
 		return NULL;
 	}
 
-	strcpy(p->student.firstName, student.firstName);
-	strcpy(p->student.lastName, student.lastName);
-	p->student.birthYear = student.birthYear;
+	q->per = per;
+
+	return q;
+}
+
+Position findB(Position p, char* lastName) {
+	while(p->next != NULL && strcmp(p->next->per.lastName, lastName) != 0)
+		p = p->next;
+
+	if ( p->next == NULL)
+		return NULL;
 
 	return p;
 }
 
-void insertAfter(Position p, Position q) {
+Position find(Position p, char* lastName) {
+	while(p != NULL && strcmp(p->per.lastName, lastName) != 0)
+		p = p->next;
+
+	if ( p == NULL)
+		return NULL;
+
+	return p;
+}
+
+int sortUnos(Position p, Position q) {
+	while(p->next != NULL && strcmp(p->next->per.lastName, q->per.lastName) < 0 )
+		p = p->next;
+	
+	insertAfter(p, q);
+
+	return 0;
+}
+
+int insertAfterNode(Position p, Position q, char* lastName) {
+	p = find(p, lastName);
+	if ( p != NULL )
+		insertAfter(p, q);
+
+	return 0;
+}
+
+int insertBeforeNode(Position p, Position q, char* lastName) {
+	p = findB(p, lastName);
+	if ( p != NULL )
+		insertAfter(p, q);
+
+	return 0;
+}
+
+int insertAfter(Position p, Position q) {
 	q->next = p->next;
 	p->next = q;
+
+	return 0;
 }
 
-void insertEnd(Position p, Position q) {
-	
-	while( p->next != NULL )
-		p = p->next;
+int print(Position p) {
+	if (p == NULL)
+		puts("Empty!");
 
+	while(p != NULL) {
+		printf("%s\t%s\t%d\n", p->per.firstName, p->per.lastName, p->per.yearOfBirth);
+		p = p->next;
+	}
+
+	return 0;
+}
+
+int printToFile(Position p, char* fileName) {
+	FILE* f;
+
+	f = fopen(fileName, "w");
+
+	if ( f == NULL ) {
+		perror("Error!\n");
+		return 0;
+	}
+
+	while(p->next != NULL) {
+		fprintf(f, "%s\t%s\t%d\n", p->per.firstName, p->per.lastName, p->per.yearOfBirth);
+		p = p->next;
+	}
+	
+	fclose(f);
+
+	return 0;
+}
+
+int readFromFile(Position p, char* fileName) {
+	FILE* f;
+	Position q = NULL;
+	Person per;
+	int br = 0, i;
+
+	f = fopen(fileName, "r");
+
+	if ( f == NULL ) {
+		perror("Error!\n");
+		return 0;
+	}
+
+	while(!feof(f)) {
+		if (getc(f) == '\n')
+			br++;
+	}
+
+	rewind(f);
+
+	q = (Position)malloc(sizeof(Node));
+
+	for(i = 0; i < br; i++) {
+		fscanf(f, "%s %s %d", per.firstName, per.lastName, &per.yearOfBirth);
+		q = createNode(per);
+		insertAtEnd(p, q);
+	}
+
+	fclose(f);
+
+	return 0;
+}
+
+int insertAtEnd(Position p, Position q) {
+	while(p->next != NULL)
+		p = p->next;
 	insertAfter(p, q);
+
+	return 0;
 }
 
-void printList(Position p) {
+int deleteNode(Position p, char* lastName) {
 	Position q = NULL;
 
-	q = p->next;
+	q = find(p, lastName);
 
-	puts("\n---LIST CONTENT---");
+	p->next = q->next;
+	free(q);
 
-	while( q != NULL ) {
-		printf("First name: %s\nLast name: %s\nYear of birth: %d\t\t%d\n\n", q->student.firstName, q->student.lastName, q->student.birthYear, q);
-		q = q->next;
-	}
+	return 0;
 }
 
-Position findElement(Position p, char* lastName) {
-	Position q = NULL;
+int deleteAll(Position p) {
+	Position Poc = p;
+	Position prev = p;
 
-	q = p->next;
+	p = p->next;
 
-	while( q != NULL) {
-		if (strcmp(lastName, q->student.lastName) == 0)
-			return q;
-		q = q->next;
-	}
+	while(Poc->next != NULL) {
+		while(p->next != NULL) {
+			prev = p;
+			p = p->next;
+		}
 
-	if ( q == NULL ) {
-		printf("Element doesn't exist\n");
-		return NULL;
-	}
-}
+		free(p);
+		prev->next = NULL;
 
-void insertAfterEl(Position p, Position q, char* lastName) {
-	Position d = NULL;
-
-	d = (Position)malloc(sizeof(Node));
-
-	if ( d == NULL ) 
-		perror("Error!");
-
-	d = findElement(p, lastName);
-
-	if ( d != NULL )
-		insertAfter(d, q);
-}
-
-void insertBeforeEl(Position p, Position q, char* lastName) {
-	Position d = NULL;
-
-	d = (Position)malloc(sizeof(Node));
-
-	if ( d == NULL )
-		perror("Error!");
-
-	d = findElement(p, lastName);
-
-	while(p->next != d)
-		p = p->next;
-
-	if ( d != NULL )
-		insertAfter(p, q);
-}
-
-void printToFile(Position p, char* lastName) {
-	FILE *f;
-	Position q = NULL;
-
-	q = p->next;
-	
-	f = fopen(lastName, "w");
-
-	if ( f == NULL )
-		perror("Error!");
-
-	while( q != NULL ) {
-		fprintf(f, "%s\t%s\t%d\n", q->student.firstName, q->student.lastName, q->student.birthYear);
-		q = q->next;
+		p = Poc->next;
+		prev = Poc;
 	}
 
-	fclose(f);
-}
+	return 0;
 
-void readFromFile(Position p, char* lastName) {
-	FILE *f;
-	Position q = NULL;
+	/*
+	ILI
+	Position temp = NULL;
 
-	q = p->next;
-
-	f = fopen(lastName, "r");
-
-	if ( f == NULL )
-		perror("Error!");
-
-	while( q != NULL ) {
-		fscanf(f, "%s %s %d", q->student.firstName, q->student.lastName, &q->student.birthYear);
-		q = q->next;
+	while(p->next != NULL) {
+		temp = p->next;
+		p->next = temp->next;
+		free(temp);
 	}
-
-	fclose(f);
+	*/
 }
 
-void sort(Position p) {
+Person createPerson() {
+	Person per;
+	printf("Insert first name of person: ");
+	scanf("%s", per.firstName);
+	printf("Insert last name of person: ");
+	scanf("%s", per.lastName);
+	printf("Insert year of birth: ");
+	scanf("%d", &per.yearOfBirth);
+
+	return per;
+}
+
+
+int sort(Position p) {
 	Position temp = NULL, q = NULL, prevq = NULL, end = NULL;
 
 	while(p->next != end ) {
 		prevq = p;
 		q = p->next;
 		while(q->next != end) {
-			if ( strcmp(q->student.lastName, q->next->student.lastName) > 0) {
+			if ( strcmp(q->per.lastName, q->next->per.lastName) > 0) {
 				temp = q->next;
 				prevq->next = temp;
 				q->next = temp->next;
@@ -277,4 +305,5 @@ void sort(Position p) {
 		}
 		end = q;
 	}
+	return 0;
 }

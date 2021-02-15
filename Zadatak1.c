@@ -3,67 +3,60 @@
 #include<stdlib.h>
 #include<string.h>
 
-typedef struct{
-	char first_name[20];
-	char last_name[20];
+#define NAME_SIZE 256
+#define FILE_SIZE 256
+
+typedef struct student {
+	char firstName[NAME_SIZE];
+	char lastName[NAME_SIZE];
 	int points;
-}student;
+}Student;
 
-int Count_Students(char* name)
+int countFromFile(char* fileName);
+int readFromFile(char* fileName, int br);
+int print(Student s);
+double countPoints(int points);
+
+int main()
 {
-	FILE *f;
-	int number=0;
+	char fileName[FILE_SIZE];
+	int number_of_students;
 
-	f=fopen(name, "r");
+	printf("Insert name of file: ");
+	scanf("%s", fileName);
 
-	if (f==NULL)
-		perror("Error!");
+	number_of_students = countFromFile(fileName);
+	readFromFile(fileName, number_of_students);
 
-	while(feof(f)==0){
-		if (getc(f)=='\n')
-			number++;
-	}
-
-	fclose(f);
-
-	return number;
-
-}
-
-double Relevant_Points(int points) {
-	return (double)points/60*100;
-}
-
-int Print_Students(student s) {
-	printf("%s\t%s\t%lf\n", s.first_name, s.last_name, Relevant_Points(s.points));
 	return 0;
 }
 
-int Read_From_File(char *name, int number)
-{
-	FILE *f;
-	student *s;
+int readFromFile(char* fileName, int br) {
+	FILE* f;
+	Student *s;
 	int i;
 
-	f=fopen(name, "r");
+	f = fopen(fileName, "r");
 
-	if (f==NULL)
-		perror("Error!");
+	if ( f == NULL ) {
+		perror("Error opening file!\n");
+		return 0;
+	}
 
-	s=(student*)malloc(number*sizeof(student));
+	s = (Student*)malloc(br*sizeof(Student));
 
-	if (s==NULL)
+	if ( s == NULL )
 		perror("Error!");
 
 	rewind(f);
 
-	for(i=0; i<number; i++) 
-		fscanf(f, "%s %s %d", s[i].first_name, s[i].last_name, &s[i].points);
+	for(i = 0; i < br; i++) {
+		fscanf(f, "%s %s %d", (s+i)->firstName, (s+i)->lastName, &(s+i)->points);
+	}
 
-	printf("FIRST NAME\tLAST NAME\tPOINTS\n");
-
-	for(i=0; i<number; i++)
-		Print_Students(s[i]);
+	for(i = 0; i < br; i++) {
+		print(*(s+i));
+	}
 
 	fclose(f);
 	free(s);
@@ -71,19 +64,34 @@ int Read_From_File(char *name, int number)
 	return 0;
 }
 
+int countFromFile(char* fileName) {
+	FILE* f;
+	int br = 0;
 
+	f = fopen(fileName, "r");
 
-int main()
-{
-	int number_of_students=0;
-	char name[20];
-	
-	scanf("%s", name);
-	strcat(name,".txt");
-	
-	number_of_students=Count_Students(name);
+	if ( f == NULL ) {
+		perror("Error opening file!\n");
+		return 0;
+	}
 
-	Read_From_File(name, number_of_students);
+	while(!feof(f)) {
+		if (getc(f) == '\n') 
+			br++;
+	}
+
+	fclose(f);
+
+	return br;
+}
+
+int print(Student s) {
+
+	printf("%s\t%s\t%d\t%lf\n", s.firstName, s.lastName, s.points, countPoints(s.points));
 
 	return 0;
+}
+
+double countPoints(int points) {
+	return (double)points/50 * 100;
 }

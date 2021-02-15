@@ -1,23 +1,22 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
 #include<stdlib.h>
-#include<string.h>
 
 struct node;
 typedef struct node* Position;
-typedef struct node{
-	int exp;
+typedef struct node {
 	int coef;
+	int exp;
 	Position next;
-}Node;
+} Node;
 
-void Create(Position p, int exp, int coef);
-void Print(Position p);
-void Sum(Position p, Position q, Position r);
-void ReadFromFile(char* fileName, Position p);
-void SortUnos(Position p, int exp, int coef);
-void Mnozi(Position p, Position q, Position r);
-void SortSum(Position p);
+int print(Position p);
+Position createNode(int exp, int coef);
+int sortUnos(Position p, int exp, int coef);
+int readFromFile(Position p, char* fileName);
+int sum(Position p, Position q, Position r);
+int multiply(Position p, Position q, Position r);
+int sort(Position p);
 
 int main()
 {
@@ -28,143 +27,156 @@ int main()
 	head3.next = NULL;
 	head4.next = NULL;
 
-	ReadFromFile("red1.txt", &head1);
-	//printf("p(x) = ");
-	Print(&head1);
+	readFromFile(&head1, "red1.txt");
+	print(head1.next);
 
-	ReadFromFile("red2.txt", &head2);
-	//printf("q(x) = ");
-	Print(&head2);
+	readFromFile(&head2, "red2.txt");
+	print(head2.next);
 
-	Sum(&head1, &head2, &head3);
-	//printf("p(x) + q(x) = ");
-	Print(&head3);
-	
-	Mnozi(&head1, &head2, &head4);
-	SortSum(&head4);
-	//printf("p(x) * q(x) = ");
-	Print(&head4);
+	sum(&head1, &head2, &head3);
+	print(head3.next);
+
+	multiply(&head1, &head2, &head4);
+	print(head4.next);
+	sort(&head4);
+	print(head4.next);
 
 	return 0;
 }
 
-void Create(Position p, int exp, int coef) {
+Position createNode(int exp, int coef) {
 	Position q = NULL;
 
 	q = (Position)malloc(sizeof(Node));
 
-	q->exp = exp;
-	q->coef = coef;
+	if (q == NULL)
+		perror("Error!\n");
 
-	q->next = p->next;
-	p->next = q;
+	q->coef = coef;
+	q->exp = exp;
+
+	return q;
 }
-void SortCreate(Position p, int exp, int coef) {
+
+int sortUnos(Position p, int exp, int coef) {
+	Position q = NULL;
+
+	q = createNode(exp, coef);
+
 	while(p->next != NULL && p->next->exp > exp)
 		p = p->next;
 
-	Create(p, exp, coef);
-	SortSum(p);
+	q->next = p->next;
+	p->next = q;
+
+	return 0;
 }
-void Print(Position p) {
-	Position q = NULL;
 
-	q = (Position)malloc(sizeof(Node));
+int readFromFile(Position p, char* fileName) {
+	FILE* f;
+	int coef, exp;
 
-	q = p->next;
+	f = fopen(fileName, "r");
 
-	puts("--POLINOME--");
-
-	while(q!=NULL) {
-		printf("%dx^%d\t", q->coef, q->exp);
-		q = q->next;
+	if ( f == NULL ) {
+		perror("Error opening file!\n");
+		return 0;
 	}
 
-	printf("\n");
+	while(!feof(f)) {
+		fscanf(f, "%d %d", &coef, &exp);
+		sortUnos(p, coef, exp);
+	}
+
+	return 0;
 }
-void Sum(Position p, Position q, Position r) {
+
+int sum(Position p, Position q, Position r) {
 	Position temp = NULL;
 
 	p = p->next;
 	q = q->next;
-
 	r->next = NULL;
 
-	while(p!=NULL && q!=NULL) {
-
-		if ( p->exp == q->exp ) {
-			SortCreate(r, p->exp, p->coef + q->coef);
+	while(p && q != NULL) {
+		if (p->exp == q->exp) {
+			sortUnos(r, p->exp, p->coef);
 			p = p->next;
 			q = q->next;
 		}
-			
-		else if ( p->exp > q->exp ) {
-			SortCreate(r, p->exp, p->coef);
+
+		else if (p->exp > q->exp) {
+			sortUnos(r, p->exp, p->coef);
 			p = p->next;
 		}
 
-		else if ( p->exp < q->exp) {
-			SortCreate(r, q->exp, q->coef);
+		else if (p->exp < q->exp) {
+			sortUnos(r, q->exp, q->coef);
 			q = q->next;
 		}
 	}
-	
-	if (p!=NULL) 
+
+	if ( p == NULL )
+		temp = q;
+	else
 		temp = p;
 
-	else
-		temp = q;
-
-	while(temp!=NULL) {
-		SortCreate(r, temp->exp, temp->coef);
+	while(temp != NULL) {
+		sortUnos(r, temp->exp, temp->coef);
 		temp = temp->next;
 	}
-}
-void ReadFromFile(char* fileName, Position p) {
-	FILE *f;
-	char line[100];
-	int  a, b;
 
-	f = fopen(fileName, "r");
-
-	while(fgets(line, sizeof(line), f) != NULL) {
-		sscanf(line, "%d %d", &a, &b);
-		if ( b == 0) 
-			continue;
-		SortCreate(p, a, b);
-	}
+	return 0;
 }
-void Mnozi(Position p, Position q, Position r) {
-	Position temp;
+
+int multiply(Position p, Position q, Position r) {
+	Position temp = NULL;
 
 	p = p->next;
 	q = q->next;
 	temp = q;
-
 	r->next = NULL;
-
-	while(p!=NULL) {
-		while(q!=NULL) {
-			SortCreate(r, p->exp + q->exp, p->coef * q->coef);
+	
+	while(p != NULL) {
+		while( q != NULL ) {
+			sortUnos(r, p->exp + q->exp, p->coef*q->coef);
 			q = q->next;
 		}
 		q = temp;
 		p = p->next;
 	}
+
+	return 0;
 }
-void SortSum(Position p) {
-	Position q = NULL, temp = NULL;
+
+int sort(Position p) {
+	Position temp = NULL;
+	Position q = NULL;
 
 	q = p->next;
-
-	while(q->next!=NULL) {
+	
+	while(q->next != NULL) {
 		if ( q->exp == q->next->exp ) {
-			q->coef+=q->next->coef;
+			q->coef += q->next->coef;
 			temp = q->next;
-			q->next = q->next->next;
+			q->next = temp->next;
 			free(temp);
 		}
 
-		else q = q->next;
+		else
+			q = q->next;
 	}
+
+	return 0;
+}
+
+int print(Position p) {
+	while(p != NULL) {
+		printf("%dx^%d\t", p->coef, p->exp);
+		p = p->next;
+	}
+
+	printf("\n");
+
+	return 0;
 }

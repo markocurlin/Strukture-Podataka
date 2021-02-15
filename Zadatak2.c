@@ -3,164 +3,149 @@
 #include<stdlib.h>
 #include<string.h>
 
-#define MAX_NAME 100
+#define NAME_SIZE 256
+
+typedef struct person {
+	char firstName[NAME_SIZE];
+	char lastName[NAME_SIZE];
+	int yearOfBirth;
+} Person;
 
 struct node;
-
 typedef struct node* Position;
-
-typedef struct node{
-	char firstName[MAX_NAME];
-	char lastName[MAX_NAME];
-	int birthYear;
+typedef struct node {
+	Person per;
 	Position next;
-}Node;
+} Node;
 
-Position getLast(Position p) {
-	Position q = p->next;
-
-	while( NULL != q->next )
-		q=q->next;
-
-	return q;
-}
-
-Position findElement(Position p, char* lastName) {
-	Position q = p->next;
-
-	while(q!=NULL) {
-		if ( strcmp(q->lastName, lastName) == 0 )
-			return q;
-		q=q->next;
-	}
-
-	return NULL;
-}
-
-Position createList(char* firstName, char* lastName, int birthYear) {
-	Position el;
-
-	el = (Position)malloc(sizeof(Node));
-
-	if ( NULL == el ) 
-		perror("Error!");
-
-	strcpy(el->firstName, firstName);
-	strcpy(el->lastName, lastName);
-	el->birthYear = birthYear;
-	el->next = NULL;
-
-	return el;
-}
-
-void insertAfter(Position p, Position q) {
-	q->next = p->next;
-	p->next = q;
-}
-
-void deleteElement(Position p, Position q) {
-
-	if (q==NULL)
-		printf("Error!");
-
-	while(p->next != q )
-		p=p->next;
-
-	p->next=q->next;
-
-	free(q);
-
-}
-
-void printList(Position p) {
-	Position q = p->next;
-
-	puts("\n---LIST CONTENT---");
-
-	while ( NULL != q ) {
-		printf("%s\t%s\t%d\t\n", q->firstName, q->lastName, q->birthYear);
-		q = q->next;
-	}
-
-}
+Position CreateNode(Person per);
+int insertAfter(Position p, Position q);
+int insertAtEnd(Position p, Position q);
+int deleteNode(Position p, Position q);
+Position find(Position p, char* lastName);
+int print(Position p);
 
 int main()
 {
 	Node head;
-	Position el = NULL;
-
-	char firstName[MAX_NAME];
-	char lastName[MAX_NAME];
-	char c;
-	int birthYear = 0;
+	Position p = NULL;
+	Person per;
+	char lastName[NAME_SIZE];
+	int i = 0;
 
 	head.next = NULL;
-	
-	while(1)
-	{
-		puts("Please insert person");
 
-		printf("First name:\t");
-		scanf("%s", firstName);
+	for(i = 0; i < 3; i++) {
+		printf("Insert first name of person: ");
+		scanf("%s", per.firstName);
+		printf("Insert last name of person: ");
+		scanf("%s", per.lastName);
+		printf("Insert year of birth: ");
+		scanf("%d", &per.yearOfBirth);
 
-		printf("Last name:\t");
-		scanf("%s", lastName);
-
-		printf("Year of birth:\t");
-		scanf("%d", &birthYear);
-
-		el = (Position)malloc(sizeof(Node));
-
-		el = createList(firstName, lastName, birthYear);
-
-		insertAfter(&head, el);
-
-		puts("Press C to continue...");
-
-		scanf("%c", &c);
-
-		if ( c=getchar() != 'C')
-			break;
-
+		p = (Position)malloc(sizeof(Node));
+		p = CreateNode(per);
+		insertAfter(&head, p);
 	}
 
-	printList(&head);
-	
-	//Insert person to the end of the list
-	puts("\nInsert person to the end of the list");
-	
-	printf("First name:\t");
-	scanf("%s", firstName);
-
-	printf("Last name:\t");
-	scanf("%s", lastName);
-
-	printf("Year of birth:\t");
-	scanf("%d", &birthYear);
-
-	el = (Position)malloc(sizeof(Node));
-	el = createList(firstName, lastName, birthYear);
-	 
-	insertAfter(getLast(&head), el);
-
-	printList(&head);
+	print(head.next);
 
 	puts(" ");
 
-	//Find element
-	printf("Find element\nLast name:\t");
+	printf("Insert first name of person: ");
+	scanf("%s", per.firstName);
+	printf("Insert last name of person: ");
+	scanf("%s", per.lastName);
+	printf("Insert year of birth: ");
+	scanf("%d", &per.yearOfBirth);
+	p = CreateNode(per);
+
+	insertAtEnd(&head, p);
+
+	print(head.next);
+
+	printf("Insert last name of person: ");
 	scanf("%s", lastName);
 
-	printf("Address of element:\t%d\n\n", findElement(&head, lastName));
+	p = find(&head, lastName);
+	printf("%s\t%s\t%d\n", p->per.firstName, p->per.lastName, p->per.yearOfBirth);
 
-	//Delete element
-
-	printf("Delete element\nLast name:\t");
+	printf("Insert last name of person: ");
 	scanf("%s", lastName);
 
-	deleteElement(&head, findElement(&head, lastName));
+	p = find(&head, lastName);
+	deleteNode(&head, p);
 
-	printList(&head);
+	print(head.next);
+
+	return 0;
+}
+
+int insertAfter(Position p, Position q) {
+	q->next = p->next;
+	p->next = q;
+
+	return 0;
+}
+
+int insertAtEnd(Position p, Position q) {
+	while(p->next != NULL)
+		p = p->next;
+
+	insertAfter(p, q);
+
+	return 0;
+}
+
+Position find(Position p, char* lastName) {
+	Position q = NULL;
+	q = p->next;
+
+	while( q->next != NULL && strcmp(q->per.lastName, lastName) != 0 )
+		q = q->next;
+
+	if ( q->next == NULL) {
+		puts("Element doesn't exist!");
+		return NULL;
+	}
+
+	return q;
+}
+
+Position CreateNode(Person per) {
+	Position q = NULL;
+
+	q = (Position)malloc(sizeof(Node));
+
+	if ( q == NULL )
+		perror("Error!\n");
+
+	q->per = per;
+
+	return q;
+}
+
+int deleteNode(Position p, Position q) {
+	if ( q == NULL ) {
+		puts("Error!");
+		return 0;
+	}
+
+	while( p->next != q )
+		p = p->next;
+
+	p->next = q->next;
+	free(q);
+
+	return 0;
+}
+
+int print(Position p) {
+
+	while( p != NULL ) {
+		printf("%s\t%s\t%d\n", p->per.firstName, p->per.lastName, p->per.yearOfBirth);
+		p = p->next;
+	}
 
 	return 0;
 }
