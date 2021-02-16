@@ -119,18 +119,15 @@ int unija(Position p, Position q, Position r) {
 	q = q->next;
 
 	while( p!=NULL && q!=NULL ) {
-
 		if ( p->x == q->x ) {
 			sortUnos(r, p->x);
 			p = p->next;
 			q = q->next;
 		}
-
 		else if ( p->x > q->x ) {
 			sortUnos(r, p->x);
 			p = p->next;
 		}
-
 		else if ( p->x < q->x ) {
 			sortUnos(r, q->x);
 			q = q->next;

@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
 #include<stdlib.h>
 
@@ -6,142 +7,143 @@ typedef struct tree* Node;
 typedef struct tree* Position;
 typedef struct tree {
 	int el;
-	Node l_child;
-	Node r_child;
-}Tree;
+	Node right;
+	Node left;
+} Tree;
 
-Node createRoot(Node p);
-Node insert(Node p, int el);
-Node find(Node p, int el);
-Node findMin(Node p);
-Node findMax(Node p);
-Node deleteEl(Node p, int el);
-int print(Node p);
+Node createEmptyTree(Node p);
+Node insertNode(Node p, int el);
+int printTree(Node p);
+Position findMin(Node p);
+Position findMax(Node p);
+Position find(Node p, int el);
+Node deleteNode(Node p, int el);
 
 int main()
 {
 	Tree tree;
 	Node root = &tree;
 
-	root = createRoot(root);
-	root = insert(root, 5);
-	root = insert(root, 7);
-	root = insert(root, 4);
-	root = insert(root, 2);
-	root = insert(root, 9);
-	root = insert(root, 11);
-	root = insert(root, 1);
-	root = insert(root, 18);
+	root = createEmptyTree(root);
+	root = insertNode(root, 5);
+	root = insertNode(root, 7);
+	root = insertNode(root, 4);
+	root = insertNode(root, 2);
+	root = insertNode(root, 9);
+	root = insertNode(root, 11);
+	root = insertNode(root, 1);
+	root = insertNode(root, 18);
 
-	print(root);
+	printTree(root);
 
-	puts(" ");
+	printf("\n");
 
-	printf("Element 4 is on: %d\n", find(root, 4));
-	printf("Minimum %d is on: %d\n", findMin(root)->el, findMin(root));
-	printf("Maximum %d is on: %d\n", findMax(root)->el, findMax(root));
-	
-	root = deleteEl(root, 2);
-	root = deleteEl(root, 7);
+	root = deleteNode(root, 9);
 
-	print(root);
+	printTree(root);
+
+	return 0;
 }
 
 
-Node createRoot(Node p) {
+Node createEmptyTree(Node p) {
 	if (p != NULL)
 		return NULL;
-	else {
-		createRoot(p->r_child);
-		createRoot(p->l_child);
+	else{
+		createEmptyTree(p->right);
+		createEmptyTree(p->left);
 		free(p);
 	}
 	return NULL;
 }
 
-Node insert(Node p, int el) {
+Node insertNode(Node p, int el) {
 	if (p == NULL) {
 		p = (Node)malloc(sizeof(Tree));
-		if (!p)
-			perror("Error!");
+		if (p == NULL) {
+			perror("Error allocating memory!\n");
+			return NULL;
+		}
 		p->el = el;
-		p->r_child = NULL;
-		p->l_child = NULL;
+		p->right = NULL;
+		p->left = NULL;
 	}
-	else if (p->el < el)
-		p->r_child = insert(p->r_child, el);
-	else
-		p->l_child = insert(p->l_child, el);
 
+	else if (p->el > el)
+		p->left = insertNode(p->left, el);
+	else
+		p->right = insertNode(p->right, el);
 	return p;
 }
 
-int print(Node p) {
+int printTree(Node p) {
 	if (p != NULL) {
-		print(p->l_child);
+		printTree(p->left);
 		printf("%d ", p->el);
-		print(p->r_child);
+		printTree(p->right);
 	}
 
 	return 0;
 }
 
-Node find(Node p, int el) {
+Position findMin(Node p) {
 	if (p == NULL) {
-		puts("Element does not exist!");
+		printf("Element doesn't exist!\n");
 		return NULL;
 	}
+	
+	else if (p->left == NULL)
+		return p;
+	else
+		return findMin(p->left);
+}
 
-	else if (p->el < el)
-		return find(p->r_child, el);
+Position findMax(Node p) {
+	if (p != NULL) {
+		while(p->right != NULL)
+			p = p->right;
+		return p;
+	}
+	else
+		return p;
+}
+
+Position find(Node p, int el) {
+	if (p == NULL) {
+		printf("Element doesn't exist!\n");
+		return NULL;
+	}
 
 	else if (p->el > el)
-		return find(p->l_child, el);
-	else
-		return p;
-}
-Node findMin(Node p) {
-	if (p == NULL) {
-		puts("Element does not exist!");
-		return NULL;
-	}
-	else if (p->l_child == NULL)
-		return p;
-	else
-		return findMin(p->l_child);
-}
-Node findMax(Node p) {
-	if (p != NULL) {
-		while(p->r_child != NULL) {
-			p = p->r_child;
-		}
-		return p;
-	}
+		return find(p->left, el);
+	else if (p->el < el)
+		return find(p->right, el);
 	else
 		return p;
 }
 
-Node deleteEl(Node p, int el) {
-	Node temp = NULL;
+Node deleteNode(Node p, int el) {
+	Position temp = NULL;
 
 	if (p == NULL)
-		puts("Element does not exist!");
-	else if ( p->el < el )
-		p->r_child = deleteEl(p->r_child, el);
+		return NULL;
 	else if (p->el > el)
-		p->l_child = deleteEl(p->l_child, el);
-	else if (p->r_child && p->l_child != NULL) {
-		temp = findMin(p->r_child);
+		p->left = deleteNode(p->left, el);
+	else if (p->el < el)
+		p->right = deleteNode(p->right, el);
+	else if (p->right && p->left != NULL) {
+		temp = findMin(p->right);
 		p->el = temp->el;
-		p->r_child = deleteEl(p->r_child, el);
+		p->right = deleteNode(p->right, p->el);
 	}
 	else {
 		temp = p;
-		if (p->l_child == NULL)
-			p = p->r_child;
+		if (p->left == NULL)
+			p = p->right;
 		else
-			p = p->l_child;
+			p = p->left;
 		free(temp);
 	}
+
 	return p;
 }

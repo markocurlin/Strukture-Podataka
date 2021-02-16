@@ -76,6 +76,7 @@ NodePosition createNode(char* data) {
 
 	return p;
 }
+
 ListPosition createListNode(NodePosition data) {
 	ListPosition p = NULL;
 
@@ -91,6 +92,7 @@ ListPosition createListNode(NodePosition data) {
 
 	return p;
 }
+
 int push(ListPosition head, NodePosition data) {
 	ListPosition node = NULL;
 
@@ -104,6 +106,7 @@ int push(ListPosition head, NodePosition data) {
 
 	return 0;
 }
+
 int isNumber(char* str) {
 	int number = 0;
 
@@ -125,6 +128,7 @@ NodePosition pop(ListPosition head) {
 
 	return result;
 }
+
 int pushBack(ListPosition head, NodePosition data) {
 	ListPosition p = head;
 
@@ -133,6 +137,7 @@ int pushBack(ListPosition head, NodePosition data) {
 
 	return push(head, data);
 }
+
 int toInfixList(ListPosition head, NodePosition current) {
 	if ( current == NULL )
 		return 1;
@@ -143,6 +148,7 @@ int toInfixList(ListPosition head, NodePosition current) {
 
 	return 0;
 }
+
 NodePosition readPostfixFromFile(char* fileName) {
 	FILE* fp;
 	char readString[DATA_SIZE] = {0};
@@ -235,6 +241,7 @@ int deleteList(ListPosition head) {
 	
 	return 0;
 }
+
 int printInfixToFile(char* fileName, ListPosition head) {
 	FILE* fp = NULL;
 	ListPosition p = NULL;

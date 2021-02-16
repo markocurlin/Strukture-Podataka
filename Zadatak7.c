@@ -3,7 +3,7 @@
 #include<stdlib.h>
 #include<string.h>
 
-#define M 100
+#define M 256
 
 struct node;
 typedef struct node* Stog;
